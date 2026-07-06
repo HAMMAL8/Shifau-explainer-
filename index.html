@@ -904,7 +904,16 @@
   }
 
   uploadBtn.addEventListener('click', async ()=>{
-    if(!unlocked || selectedFiles.length === 0) return;
+    // hard guard: re-check password state at the moment of click, never trust prior UI state alone
+    if(unlocked !== true){
+      showToast('Enter the correct password and click UNLOCK first.');
+      uploadBtn.disabled = true;
+      return;
+    }
+    if(selectedFiles.length === 0){
+      showToast('Choose at least one file first.');
+      return;
+    }
     uploadBtn.disabled = true;
     uploadBtn.textContent = 'UPLOADING...';
 
