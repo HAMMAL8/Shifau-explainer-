@@ -380,9 +380,27 @@
     overflow:hidden;
     cursor:pointer;
     display:flex; flex-direction:column;
+    position: relative;
     transition: border-color .15s ease, transform .15s ease;
   }
   .card:hover{ border-color: var(--gold-soft); transform: translateY(-2px); }
+  .card-delete{
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 28px; height: 28px;
+    background: rgba(10,15,28,0.75);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #e8ecf3;
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity .15s ease, background .15s ease, color .15s ease;
+  }
+  .card:hover .card-delete{ opacity: 1; }
+  .card-delete:hover{ background: rgba(255,107,107,0.18); color: var(--danger); border-color: var(--danger); }
+  .card-delete svg{ width: 14px; height: 14px; }
   .card-thumb{
     height: 100px;
     background: #0b1220;
@@ -989,10 +1007,36 @@
           <div class="card-name">${rec.name}</div>
           <div class="card-sub">${formatSize(rec.size)}</div>
         </div>
+        <button class="card-delete" data-id="${rec.id}" data-path="${rec.storage_path}" aria-label="Delete file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        </button>
       `;
+      card.querySelector('.card-delete').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        handleDeleteClick(rec);
+      });
       card.addEventListener('click', ()=> openViewer(rec));
       libraryGrid.appendChild(card);
     });
+  }
+
+  async function handleDeleteClick(rec){
+    const attempt = window.prompt('Enter the password to delete this file:');
+    if(attempt === null) return; // cancelled
+    if(attempt !== UPLOAD_PASSWORD){
+      showToast('Incorrect password. File not deleted.');
+      return;
+    }
+    const sure = window.confirm(`Delete "${rec.name}"? This can't be undone.`);
+    if(!sure) return;
+    try{
+      await dbDelete(rec.id, rec.storage_path);
+      showToast(`Deleted ${rec.name}.`);
+      loadLibrary();
+    } catch(err){
+      console.error(err);
+      showToast('Failed to delete file.');
+    }
   }
 
   // ---------- viewer modal ----------
