@@ -799,7 +799,7 @@
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+    showToast._t = setTimeout(()=>t.classList.remove('show'), 6000);
   }
 
   // ---------- password / unlock ----------
@@ -950,7 +950,8 @@
         successCount++;
       } catch(err){
         console.error('Upload failed for', f.name, err);
-        showToast(`Failed to upload ${f.name}.`);
+        const detail = (err && (err.message || err.error_description || err.statusText)) || 'unknown error';
+        showToast(`Failed to upload ${f.name}: ${detail}`);
       }
     }
     if(successCount > 0){
